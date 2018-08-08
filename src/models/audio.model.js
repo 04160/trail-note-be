@@ -1,9 +1,10 @@
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
+const Geomedia = require('geomedia.model');
 
 module.exports = function (app) {
   const sequelizeClient = app.get('sequelizeClient');
-  const audio = sequelizeClient.define('audio', {
+  const Audio = sequelizeClient.define('Audio', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -18,11 +19,7 @@ module.exports = function (app) {
     updated_at: DataTypes.DATE,
   });
 
-  // // eslint-disable-next-line no-unused-vars
-  // audio.associate = function (models) {
-  //   // Define associations here
-  //   // See http://docs.sequelizejs.com/en/latest/docs/associations/
-  // };
+  Audio.belongsTo(Geomedia, {foreignKey: '_audio_id', sourceKey: 'id'});
 
-  return audio;
+  return Audio;
 };

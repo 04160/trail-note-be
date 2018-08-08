@@ -1,9 +1,14 @@
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
+const Audio = require('audio.model');
+const Video = require('video.model');
+const Text = require('text.model');
+const Pic = require('pic.model');
+const Geopoint = require('geopoint.model');
 
 module.exports = function (app) {
   const sequelizeClient = app.get('sequelizeClient');
-  const geomedia = sequelizeClient.define('geomedia', {
+  const Geomedia = sequelizeClient.define('Geomedia', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -16,43 +21,43 @@ module.exports = function (app) {
     },
     _geopoint_id: {
       type: DataTypes.INTEGER,
-      references: 'Geopoint',
+      references: 'geopoints',
       referencesKey: 'id',
       allowNull: false
     },
     _pic_id: {
       type: DataTypes.INTEGER,
-      references: 'Pic',
+      references: 'pics',
       referencesKey: 'id',
-      allowNull: false
+      allowNull: true
     },
     _text_id: {
       type: DataTypes.INTEGER,
-      references: 'Text',
+      references: 'texts',
       referencesKey: 'id',
-      allowNull: false
+      allowNull: true
     },
     _video_id: {
       type: DataTypes.INTEGER,
-      references: 'Video',
+      references: 'videos',
       referencesKey: 'id',
-      allowNull: false
+      allowNull: true
     },
     _audio_id: {
       type: DataTypes.INTEGER,
-      references: 'Audio',
+      references: 'audios',
       referencesKey: 'id',
-      allowNull: false
+      allowNull: true
     },
     created_at: DataTypes.DATE,
     updated_at: DataTypes.DATE,
   });
 
-  // // eslint-disable-next-line no-unused-vars
-  // geomedia.associate = function (models) {
-  //   // Define associations here
-  //   // See http://docs.sequelizejs.com/en/latest/docs/associations/
-  // };
+  Geomedia.hasOne(Audio, {foreignKey: 'id', sourceKey: '_audio_id'})
+    .hasOne(Video, {foreignKey: 'id', sourceKey: '_video_id'})
+    .hasOne(Text, {foreignKey: 'id', sourceKey: '_text_id'})
+    .hasOne(Pic, {foreignKey: 'id', sourceKey: '_pic_id'})
+    .belongsTo(Geopoint, {foreignKey: 'id', sourceKey: '_geopoint_id'});
 
-  return geomedia;
+  return Geomedia;
 };

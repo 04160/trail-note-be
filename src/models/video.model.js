@@ -1,9 +1,10 @@
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
+const Geomedia = require('geomedia.model');
 
 module.exports = function (app) {
   const sequelizeClient = app.get('sequelizeClient');
-  const video = sequelizeClient.define('video', {
+  const Video = sequelizeClient.define('Video', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -18,11 +19,7 @@ module.exports = function (app) {
     updated_at: DataTypes.DATE,
   });
 
-  // // eslint-disable-next-line no-unused-vars
-  // video.associate = function (models) {
-  //   // Define associations here
-  //   // See http://docs.sequelizejs.com/en/latest/docs/associations/
-  // };
+  Video.belongsTo(Geomedia, {foreignKey: '_video_id', sourceKey: 'id'});
 
-  return video;
+  return Video;
 };

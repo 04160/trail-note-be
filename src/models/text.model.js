@@ -1,9 +1,10 @@
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
+const Geomedia = require('geomedia.model');
 
 module.exports = function (app) {
   const sequelizeClient = app.get('sequelizeClient');
-  const text = sequelizeClient.define('text', {
+  const Text = sequelizeClient.define('Text', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -18,11 +19,7 @@ module.exports = function (app) {
     updated_at: DataTypes.DATE,
   });
 
-  // // eslint-disable-next-line no-unused-vars
-  // text.associate = function (models) {
-  //   // Define associations here
-  //   // See http://docs.sequelizejs.com/en/latest/docs/associations/
-  // };
+  Text.belongsTo(Geomedia, {foreignKey: '_text_id', sourceKey: 'id'});
 
-  return text;
+  return Text;
 };

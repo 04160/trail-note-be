@@ -1,9 +1,11 @@
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
+const Geomedia = require('geomedia.model');
+const Trail = require('trail.model');
 
 module.exports = function (app) {
   const sequelizeClient = app.get('sequelizeClient');
-  const geopoint = sequelizeClient.define('geopoint', {
+  const Geopoint = sequelizeClient.define('Geopoint', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -11,21 +13,24 @@ module.exports = function (app) {
       autoIncrement: true,
       unique: true
     },
-    name: {
-      type: DataTypes.CHAR,
+    latitude: {
+      type: DataTypes.DOUBLE
     },
-    message: {
-      type: DataTypes.TEXT,
+    longitude: {
+      type: DataTypes.DOUBLE
+    },
+    _trail_id: {
+      type: DataTypes.INTEGER,
+      references: 'trails',
+      referencesKey: 'id',
+      allowNull: false
     },
     created_at: DataTypes.DATE,
     updated_at: DataTypes.DATE,
   });
 
-  // // eslint-disable-next-line no-unused-vars
-  // geopoint.associate = function (models) {
-  //   // Define associations here
-  //   // See http://docs.sequelizejs.com/en/latest/docs/associations/
-  // };
+  Geopoint.hasMany(Geomedia, {foreignKey: '_geopoint_id', sourceKey: 'id'})
+    .belongsTo(Trail, {foreignKey: 'id', sourceKey: '_trail_id'});
 
-  return geopoint;
+  return Geopoint;
 };

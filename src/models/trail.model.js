@@ -4,7 +4,7 @@ const User = require('user.model');
 
 module.exports = function (app) {
   const sequelizeClient = app.get('sequelizeClient');
-  const trail = sequelizeClient.define('trail', {
+  const Trail = sequelizeClient.define('Trail', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -17,7 +17,7 @@ module.exports = function (app) {
     },
     _users_id: {
       type: DataTypes.INTEGER,
-      references: 'User',
+      references: 'users',
       referencesKey: 'id',
       allowNull: false
     },
@@ -27,13 +27,8 @@ module.exports = function (app) {
     created_at: DataTypes.DATE,
     updated_at: DataTypes.DATE,
   });
-  // // // eslint-disable-next-line no-unused-vars
-  // trail.associate = function (models) {
-  //   // Define associations here
-  //   // See http://docs.sequelizejs.com/en/latest/docs/associations/
-  //
-  // };
-  // // trail.belongsTo(User);
 
-  return trail;
+  Trail.belongsTo(User, { foreignKey: 'id', sourceKey: '_users_id'});
+
+  return Trail;
 };

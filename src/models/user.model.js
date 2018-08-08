@@ -1,9 +1,10 @@
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
+const Trail = require('trail.model');
 
 module.exports = function (app) {
   const sequelizeClient = app.get('sequelizeClient');
-  const user = sequelizeClient.define('user', {
+  const User = sequelizeClient.define('User', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -24,5 +25,7 @@ module.exports = function (app) {
     updated_at: DataTypes.DATE,
   });
 
-  return user;
+  User.hasMany(Trail, {foreignKey: '_users_id', sourceKey: 'id'});
+
+  return User;
 };
