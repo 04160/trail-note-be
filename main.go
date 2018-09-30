@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -51,9 +52,9 @@ type (
 	mediaModel struct {
 		gorm.Model
 		Pic      picModel `gorm:foreignkey:_pic_id`
-		_pic_id  uint
+		_pic_id  *uint
 		Text     textModel `gorm:foreignkey:_text_id`
-		_text_id uint
+		_text_id *uint
 	}
 )
 
@@ -73,6 +74,7 @@ func init() {
 		panic(err)
 	}
 
+	//TODO: Create migrations, right now everything will be hardcoded for initial MVP
 	//TODO: don't use gorms automigrate, create migrations instead
 }
 
@@ -96,7 +98,14 @@ func main() {
 
 //TODO: Seperate file for frontend needs
 func getTrails(c *gin.Context) {
+	var trails []trailModel
+	db.Find(&trails)
+	if len(trails) <= 0 {
+		c.JSON(http.StatusNotFound, "No bills found!")
+		return
+	}
 
+	c.JSON(http.StatusOK, trails)
 }
 
 func getSingleTrail(c *gin.Context) {
