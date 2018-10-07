@@ -1,10 +1,12 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -18,43 +20,44 @@ const (
 	host   = "localhost"
 	port   = 5432
 	user   = "kadikis"
-	dbname = "trail_note"
+	dbname = "trail-note"
 )
 
 //TODO: split off as seperate models in a model directory
 type (
-	userModel struct {
+	User struct {
 		gorm.Model
-		username string
-		password string
+		Username string
+		Password string
 	}
-	trailModel struct {
+	Trail struct {
 		gorm.Model
-		User     userModel `gorm:"foreignkey:_user_id"`
-		_user_id uint
-		name     string
+		User      User       `gorm:"foreignkey:_user_id"`
+		UserId    uint       `gorm:column"_user_id"`
+		Geopoints []Geopoint `gorm:"foreignkey:TrailId"`
+		Name      string
 	}
-	geopointModel struct {
+	Geopoint struct {
 		gorm.Model
-		Trail     trailModel `gorm:foreignkey:_trail_id`
-		_trail_id uint
-		lat       float64
-		lon       float64
+		Trail   Trail `gorm:foreignkey:_trail_id`
+		TrailId uint  `gorm:"column:_trail_id"`
+		Lat     float64
+		Lon     float64
 	}
-	picModel struct {
+	Pic struct {
 		gorm.Model
-		filename string
+		Filename string
 	}
-	textModel struct {
+	Text struct {
 		gorm.Model
-		text string
+		Text string
 	}
-	mediaModel struct {
+	Media struct {
 		gorm.Model
-		Pic      picModel `gorm:foreignkey:_pic_id`
-		_pic_id  *uint
-		Text     textModel `gorm:foreignkey:_text_id`
-		_text_id *uint
+		Pic    Pic           `gorm:foreignkey:PicId`
+		PicId  sql.NullInt64 `gorm:column:"_pic_id"`
+		Text   Text          `gorm:foreignkey:_text_id`
+		TextId sql.NullInt64 `gorm:column:"_text_id"`
 	}
 )
 
@@ -74,8 +77,8 @@ func init() {
 		panic(err)
 	}
 
-	//TODO: Create migrations, right now everything will be hardcoded for initial MVP
-	//TODO: don't use gorms automigrate, create migrations instead
+	//TODO: Create migrations
+	db.AutoMigrate(&User{}, &Trail{}, &Geopoint{}, &Pic{}, &Text{}, &Media{})
 }
 
 func main() {
@@ -88,20 +91,22 @@ func main() {
 		//For frontend
 		v1.GET("/", getTrails)
 		v1.GET("/:id", getSingleTrail)
-		v1.GET("/:id", getGeopoints)
+		v1.GET("/:id/points", getGeopoints)
 		//For data import
 		v1.POST("/", createTrail)
 	}
+
+	router.Use(static.Serve("/img", static.LocalFile("./storage/images", true)))
 
 	router.Run() // listen and serve on 0.0.0.0:8080
 }
 
 //TODO: Seperate file for frontend needs
 func getTrails(c *gin.Context) {
-	var trails []trailModel
+	var trails []Trail
 	db.Find(&trails)
 	if len(trails) <= 0 {
-		c.JSON(http.StatusNotFound, "No bills found!")
+		c.JSON(http.StatusNotFound, "No trails found!")
 		return
 	}
 
@@ -109,7 +114,16 @@ func getTrails(c *gin.Context) {
 }
 
 func getSingleTrail(c *gin.Context) {
+	var trail Trail
 
+	db.Preload("Geopoints").First(&trail, c.Param("id"))
+
+	if trail.ID == 0 {
+		c.JSON(http.StatusNotFound, "No trail found!")
+		return
+	}
+
+	c.JSON(http.StatusOK, trail)
 }
 
 func getGeopoints(c *gin.Context) {
